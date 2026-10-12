@@ -125,6 +125,29 @@ function b64url(s: string) {
 }
 const mediaPath = (userId: string, name: string) => `${userId}/${b64url(name)}`
 
+/** Supabase's free tier briefly refuses work under load ("too many connections", 429, 5xx). */
+function isTransient(message: string) {
+  return /too many|connection|timeout|timed out|rate|429|50\d|fetch|network|temporar/i.test(message)
+}
+
+/** Retry an operation with growing pauses when the server is temporarily busy. */
+async function withRetry<T>(fn: () => Promise<T>, tries = 6): Promise<T> {
+  let wait = 1000
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fn()
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      if (attempt >= tries || !isTransient(msg)) throw e
+      await new Promise((r) => setTimeout(r, wait + Math.random() * 500))
+      wait = Math.min(wait * 2, 20_000)
+    }
+  }
+}
+
+const MEDIA_WORKERS = 3
+const MEDIA_BATCH = 30
+
 async function push(userId: string) {
   const entries = await db.outbox.toArray()
   setStatus({ pendingCount: entries.length })
@@ -132,37 +155,10 @@ async function push(userId: string) {
 
   const byTable = new Map<string, OutboxEntry[]>()
   for (const e of entries) byTable.set(e.tbl, [...(byTable.get(e.tbl) ?? []), e])
-
-  // Media first, so that by the time another device sees the record, the file exists.
   const media = byTable.get('media') ?? []
   byTable.delete('media')
-  const mediaRows: { tbl: string; id: string; data: unknown; deleted: boolean }[] = []
-  let done = 0
-  if (media.length) setStatus({ mediaProgress: { done: 0, total: media.length }, message: 'Uploading audio and images…' })
-  const queue = [...media]
-  const workers = Array.from({ length: 6 }, async () => {
-    for (let e = queue.shift(); e; e = queue.shift()) {
-      const file = await db.media.get(e.id)
-      if (file) {
-        const path = mediaPath(userId, e.id)
-        const { error } = await supabase.storage.from('media').upload(path, file.blob, {
-          upsert: true, contentType: file.blob.type || 'application/octet-stream',
-        })
-        if (error && !/exists/i.test(error.message)) throw new Error(`Upload of ${e.id} failed: ${error.message}`)
-        mediaRows.push({ tbl: 'media', id: e.id, data: { path, type: file.blob.type, size: file.blob.size }, deleted: false })
-      } else {
-        await supabase.storage.from('media').remove([mediaPath(userId, e.id)])
-        mediaRows.push({ tbl: 'media', id: e.id, data: null, deleted: true })
-      }
-      done++
-      if (done % 10 === 0) setStatus({ mediaProgress: { done, total: media.length } })
-    }
-  })
-  await Promise.all(workers)
-  if (media.length) setStatus({ mediaProgress: null })
-  await upsertRows(mediaRows)
-  await clearOutbox(media)
 
+  // Cards, notes and progress first (small), so other devices get them right away.
   for (const [tbl, list] of byTable) {
     for (let i = 0; i < list.length; i += CHUNK) {
       const slice = list.slice(i, i + CHUNK)
@@ -175,12 +171,60 @@ async function push(userId: string) {
       setStatus({ message: `Uploading changes… ${tbl}` })
     }
   }
+
+  // Then audio and images, a few at a time, saving progress after every batch.
+  if (!media.length) return
+  let done = 0
+  let failed = 0
+  setStatus({ mediaProgress: { done: 0, total: media.length }, message: 'Uploading audio and images…' })
+  for (let b = 0; b < media.length; b += MEDIA_BATCH) {
+    const batch = media.slice(b, b + MEDIA_BATCH)
+    const rows: { tbl: string; id: string; data: unknown; deleted: boolean }[] = []
+    const ok: OutboxEntry[] = []
+    const queue = [...batch]
+    await Promise.all(Array.from({ length: MEDIA_WORKERS }, async () => {
+      for (let e = queue.shift(); e; e = queue.shift()) {
+        const entry = e
+        try {
+          const file = await db.media.get(entry.id)
+          const path = mediaPath(userId, entry.id)
+          if (file) {
+            await withRetry(async () => {
+              const { error } = await supabase.storage.from('media').upload(path, file.blob, {
+                upsert: true, contentType: file.blob.type || 'application/octet-stream',
+              })
+              if (error && !/exists/i.test(error.message)) throw new Error(error.message)
+            })
+            rows.push({ tbl: 'media', id: entry.id, data: { path, type: file.blob.type, size: file.blob.size }, deleted: false })
+          } else {
+            await withRetry(async () => {
+              const { error } = await supabase.storage.from('media').remove([path])
+              if (error) throw new Error(error.message)
+            })
+            rows.push({ tbl: 'media', id: entry.id, data: null, deleted: true })
+          }
+          ok.push(entry)
+        } catch {
+          failed++ // stays in the outbox and is retried on the next sync
+        }
+        done++
+        setStatus({ mediaProgress: { done, total: media.length } })
+      }
+    }))
+    await upsertRows(rows)
+    await clearOutbox(ok)
+  }
+  setStatus({ mediaProgress: null })
+  if (failed) throw new Error(`${failed} audio/image file${failed === 1 ? '' : 's'} couldn’t upload yet; they will retry on the next sync.`)
 }
 
 async function upsertRows(rows: { tbl: string; id: string; data: unknown; deleted: boolean }[]) {
   for (let i = 0; i < rows.length; i += CHUNK) {
-    const { error } = await supabase.from('records').upsert(rows.slice(i, i + CHUNK), { onConflict: 'user_id,tbl,id' })
-    if (error) throw new Error(error.message)
+    const slice = rows.slice(i, i + CHUNK)
+    await withRetry(async () => {
+      const { error } = await supabase.from('records').upsert(slice, { onConflict: 'user_id,tbl,id' })
+      if (error) throw new Error(error.message)
+    })
   }
 }
 
@@ -207,8 +251,11 @@ async function fetchChanges(since: string | null, onPage: (rows: RemoteRow[]) =>
   for (;;) {
     let q = supabase.from('records').select('tbl,id,data,deleted,updated_at').order('updated_at', { ascending: true }).limit(1000)
     if (cursor) q = q.gt('updated_at', cursor)
-    const { data, error } = await q
-    if (error) throw new Error(error.message)
+    const { data } = await withRetry(async () => {
+      const res = await q
+      if (res.error) throw new Error(res.error.message)
+      return res
+    })
     if (!data?.length) return
     await onPage(data as RemoteRow[])
     cursor = (data[data.length - 1] as RemoteRow).updated_at
@@ -256,16 +303,20 @@ async function downloadMedia() {
   let done = 0
   setStatus({ mediaProgress: { done, total: items.length }, message: 'Downloading audio and images…' })
   const queue = [...items]
-  const workers = Array.from({ length: 6 }, async () => {
+  const workers = Array.from({ length: MEDIA_WORKERS }, async () => {
     for (let item = queue.shift(); item; item = queue.shift()) {
       const [name, path] = item
-      const { data, error } = await supabase.storage.from('media').download(path)
-      if (!error && data) {
+      const data = await withRetry(async () => {
+        const res = await supabase.storage.from('media').download(path)
+        if (res.error) throw new Error(res.error.message)
+        return res.data
+      }).catch(() => null)
+      if (data) {
         await remoteWrite(['media'], async () => { await db.media.put({ name, blob: data, updatedAt: Date.now() }) })
         mediaToFetch.delete(name)
       }
       done++
-      if (done % 10 === 0) setStatus({ mediaProgress: { done, total: items.length } })
+      setStatus({ mediaProgress: { done, total: items.length } })
     }
   })
   await Promise.all(workers)
