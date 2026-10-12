@@ -2,9 +2,9 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Served from https://kfcjanssen.github.io/haru/ in production.
+// Relative base so it works at any GitHub Pages path (repo name casing doesn't matter).
 export default defineConfig({
-  base: '/haru/',
+  base: './',
   plugins: [
     react(),
     VitePWA({

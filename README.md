@@ -2,7 +2,7 @@
 
 Daily Korean study with spaced repetition. Runs in the browser and installs as an app on Windows and phones.
 
-**Live app:** https://kfcjanssen.github.io/haru/
+**Live app:** https://kfcjanssen.github.io/Haru/
 
 ## What it does (v0.1, phase 1)
 
@@ -34,7 +34,7 @@ Keyboard: `Space` shows the answer (then grades Good), `1`–`4` grade, `R` repl
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173/haru/
+npm run dev      # http://localhost:5173/
 npm test
 npm run build    # output in dist/ (not committed)
 ```
