@@ -63,7 +63,7 @@ function renderSections(tpl: string, fields: Record<string, string>): string {
 export function renderTemplate(
   tpl: string,
   fields: Record<string, string>,
-  opts: { side: 'front' | 'back'; frontHtml?: string },
+  opts: { side: 'front' | 'back'; frontHtml?: string; ord?: number },
 ): RenderResult {
   let typeAnswer: string | null = null
   let ttsText: string | null = null
@@ -81,7 +81,7 @@ export function renderTemplate(
       return ttsText ? '<button type="button" class="play" aria-label="Play audio">▶</button>' : ''
     }
     if (filters.includes('type')) {
-      typeAnswer = stripHtml(value)
+      typeAnswer = filters.includes('cloze') ? clozeAnswers(value, (opts.ord ?? 0) + 1) : stripHtml(value)
       return TYPE_SLOT
     }
     if (filters.includes('blank')) {
@@ -93,7 +93,7 @@ export function renderTemplate(
       return value
     }
     if (filters.includes('cloze')) {
-      return value.replace(/\{\{c\d+::(.*?)(::.*?)?\}\}/g, '$1')
+      return renderCloze(value, (opts.ord ?? 0) + 1, opts.side)
     }
     if (filters.includes('hint')) {
       return value ? `<details class="hint"><summary>Hint</summary>${value}</details>` : ''
@@ -108,7 +108,28 @@ export function renderTemplate(
     return `<button type="button" class="play" data-sound="${escapeHtml(file)}" aria-label="Play audio">▶</button>`
   })
 
+  // Local images are loaded from the media store by the study screen.
+  html = html.replace(/(<img\b[^>]*?)\ssrc=(["']?)([^"' >]+)\2/gi, (m, pre: string, _q: string, src: string) =>
+    /^(https?:|data:|blob:)/i.test(src) ? m : `${pre} data-media="${escapeHtml(decodeURIComponent(src))}"`)
+
   return { html: sanitize(html), typeAnswer, sounds, ttsText }
+}
+
+const CLOZE_RE = /\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g
+
+/** Anki cloze: the active number is hidden on the front and highlighted on the back. */
+export function renderCloze(text: string, active: number, side: 'front' | 'back'): string {
+  return text.replace(CLOZE_RE, (_m, n: string, answer: string, hint?: string) => {
+    if (Number(n) !== active) return answer
+    if (side === 'front') return `<span class="cloze">[${hint ? escapeHtml(hint) : '…'}]</span>`
+    return `<span class="cloze">${answer}</span>`
+  })
+}
+
+export function clozeAnswers(text: string, active: number): string {
+  const out: string[] = []
+  for (const m of text.matchAll(CLOZE_RE)) if (Number(m[1]) === active) out.push(stripHtml(m[2]))
+  return out.join(', ')
 }
 
 /** Remove scripts and inline event handlers from deck HTML. */

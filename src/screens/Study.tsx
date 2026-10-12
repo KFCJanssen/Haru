@@ -7,6 +7,9 @@ import {
 } from '../scheduler'
 import { compareAnswer, renderTemplate } from '../template'
 import { playSound, speak, stopAudio } from '../speech'
+import { scopeCss } from '../anki/css'
+import { useMediaImages } from '../useMediaImages'
+import { withDescendants } from '../decks'
 
 interface Current {
   card: Card
@@ -28,6 +31,7 @@ export default function Study({ deckParam }: { deckParam: string }) {
   const shownAt = useRef(Date.now())
   const inputRef = useRef<HTMLInputElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
+  useMediaImages(cardRef, [cur, revealed])
 
   useEffect(() => {
     ;(async () => {
@@ -36,8 +40,9 @@ export default function Study({ deckParam }: { deckParam: string }) {
         setDeckIds(decks.map((d) => d.id))
         setDeckName('All decks')
       } else {
-        const d = await db.decks.get(deckParam)
-        setDeckIds(d ? [d.id] : [])
+        const all = await db.decks.toArray()
+        const d = all.find((x) => x.id === deckParam)
+        setDeckIds(d ? withDescendants(all, d).map((x) => x.id) : [])
         setDeckName(d?.name ?? 'Deck not found')
       }
     })()
@@ -80,16 +85,22 @@ export default function Study({ deckParam }: { deckParam: string }) {
     return () => clearTimeout(t)
   }, [cur, queue, loadNext])
 
-  const template = cur ? cur.noteType.templates[cur.card.ord] ?? cur.noteType.templates[0] : null
+  const template = cur
+    ? cur.noteType.kind === 'cloze'
+      ? cur.noteType.templates[0]
+      : cur.noteType.templates[cur.card.ord] ?? cur.noteType.templates[0]
+    : null
+  const isAnki = cur?.noteType.origin === 'anki'
+  const scopedCss = useMemo(() => (cur && isAnki ? scopeCss(cur.noteType.css) : ''), [cur, isAnki])
 
   const front = useMemo(
-    () => (cur && template ? renderTemplate(template.qfmt, cur.note.fields, { side: 'front' }) : null),
+    () => (cur && template ? renderTemplate(template.qfmt, cur.note.fields, { side: 'front', ord: cur.card.ord }) : null),
     [cur, template],
   )
   const back = useMemo(() => {
     if (!cur || !template) return null
-    const frontForBack = renderTemplate(template.qfmt, cur.note.fields, { side: 'back' }).html
-    return renderTemplate(template.afmt, cur.note.fields, { side: 'back', frontHtml: frontForBack })
+    const frontForBack = renderTemplate(template.qfmt, cur.note.fields, { side: 'back', ord: cur.card.ord }).html
+    return renderTemplate(template.afmt, cur.note.fields, { side: 'back', frontHtml: frontForBack, ord: cur.card.ord })
   }, [cur, template])
 
   const playFor = useCallback(async (r: { sounds: string[]; ttsText: string | null } | null) => {
@@ -230,6 +241,7 @@ export default function Study({ deckParam }: { deckParam: string }) {
   )
   const backHtml = (back?.html ?? '').replace(/<span class="type-slot"><\/span>/g, '')
   const kind = template?.name ?? ''
+  const styleTag = scopedCss ? `<style>${scopedCss.replace(/<\/style/gi, '')}</style>` : ''
 
   return (
     <section className="study">
@@ -243,8 +255,7 @@ export default function Study({ deckParam }: { deckParam: string }) {
         </span>
       </div>
 
-      <div className={`card kind-${kind.toLowerCase()}`} ref={cardRef} onClick={onCardClick} lang="ko">
-        <style>{cur.noteType.css}</style>
+      <div className={`study-card kind-${kind.toLowerCase()}`} ref={cardRef} onClick={onCardClick} lang="ko">
         {verdict && (
           <div className={`verdict ${verdict.correct ? 'ok' : 'miss'}`} aria-live="polite">
             {verdict.correct ? (
@@ -255,10 +266,12 @@ export default function Study({ deckParam }: { deckParam: string }) {
                 <span className="ko expected">{verdict.expected}</span>
               </>
             )}
+          </div>
+        )}
         {!revealed ? (
-          <div className="face" dangerouslySetInnerHTML={{ __html: frontHtml }} />
+          <div className={`face ${isAnki ? 'anki-scope' : ''}`} dangerouslySetInnerHTML={{ __html: styleTag + frontHtml }} />
         ) : (
-          <div className="face" dangerouslySetInnerHTML={{ __html: backHtml }} />
+          <div className={`face ${isAnki ? 'anki-scope' : ''}`} dangerouslySetInnerHTML={{ __html: styleTag + backHtml }} />
         )}
         {front?.typeAnswer != null && !revealed && (
           <input
@@ -273,8 +286,6 @@ export default function Study({ deckParam }: { deckParam: string }) {
             autoCorrect="off"
             spellCheck={false}
           />
-        )}
-          </div>
         )}
       </div>
 

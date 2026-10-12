@@ -6,6 +6,7 @@ import Study from './screens/Study'
 import AddNote from './screens/AddNote'
 import Browse from './screens/Browse'
 import Settings from './screens/Settings'
+import Import from './screens/Import'
 
 function useHashRoute() {
   const [hash, setHash] = useState(() => window.location.hash.slice(1) || '/')
@@ -18,7 +19,7 @@ function useHashRoute() {
 }
 
 const NAV = [
-  { href: '#/', label: 'Today', match: (r: string) => r === '/' || r.startsWith('/study') },
+  { href: '#/', label: 'Today', match: (r: string) => r === '/' || r.startsWith('/study') || r.startsWith('/import') },
   { href: '#/add', label: 'Add', match: (r: string) => r.startsWith('/add') },
   { href: '#/browse', label: 'Browse', match: (r: string) => r.startsWith('/browse') },
   { href: '#/settings', label: 'Settings', match: (r: string) => r.startsWith('/settings') },
@@ -44,6 +45,7 @@ export default function App() {
     else if (route.startsWith('/add')) screen = <AddNote />
     else if (route.startsWith('/browse')) screen = <Browse />
     else if (route.startsWith('/settings')) screen = <Settings />
+    else if (route.startsWith('/import')) screen = <Import />
     else screen = <Today />
   }
 

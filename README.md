@@ -4,7 +4,7 @@ Daily Korean study with spaced repetition. Runs in the browser and installs as a
 
 **Live app:** https://kfcjanssen.github.io/Haru/
 
-## What it does (v0.1, phase 1)
+## What it does (v0.2)
 
 - **FSRS scheduling** (the same algorithm modern Anki uses) with a 90% target recall by default
 - **Sentence cards** with the target word marked: each sentence gives three cards
@@ -14,6 +14,8 @@ Daily Korean study with spaced repetition. Runs in the browser and installs as a
 - Daily new-card limit per deck; sibling cards of the same sentence are spread over different days
 - Starter deck of 30 TOPIK II sentences
 - Add sentences, browse/search, suspend and delete notes
+- **Anki import**: .apkg files from AnkiWeb or Anki (all three file formats), with audio, images, sub-decks and cloze cards; re-importing updates instead of duplicating
+- **Anki export** of any deck (optionally with your progress)
 - Backup and restore to a JSON file
 - Works offline once loaded
 
@@ -22,7 +24,7 @@ Keyboard: `Space` shows the answer (then grades Good), `1`–`4` grade, `R` repl
 ## Roadmap
 
 1. ~~Foundation + review loop~~
-2. Anki `.apkg` import (all formats, with audio) and export
+2. ~~Anki `.apkg` import (all formats, with audio) and export~~
 3. Sync between PC and phone (Supabase)
 4. Card editor + Korean Learners' Dictionary auto-fill
 5. Reader + sentence mining
@@ -36,6 +38,7 @@ Keyboard: `Space` shows the answer (then grades Good), `1`–`4` grade, `R` repl
 npm install
 npm run dev      # http://localhost:5173/
 npm test
+HARU_DECKS=./test-fixtures npm test   # also tests against real .apkg files placed there
 npm run build    # output in dist/ (not committed)
 ```
 

@@ -28,6 +28,8 @@ export interface NoteType {
   css: string
   /** 'haru' for built-in types, 'anki' for imported ones. */
   origin: 'haru' | 'anki'
+  /** Cloze note types make one card per {{c1::…}} number. */
+  kind?: 'normal' | 'cloze'
   updatedAt: number
 }
 
@@ -38,6 +40,8 @@ export interface Note {
   /** Field values keyed by field name. */
   fields: Record<string, string>
   tags: string[]
+  /** Anki's global note id, used to update instead of duplicate on re-import. */
+  guid?: string
   createdAt: number
   updatedAt: number
 }
@@ -112,6 +116,10 @@ db.version(1).stores({
   reviewLogs: 'id, cardId, noteId, deckId, day, reviewedAt',
   media: 'name',
   settings: 'key',
+})
+
+db.version(2).stores({
+  notes: 'id, noteTypeId, deckId, *tags, updatedAt, guid',
 })
 
 export const uid = () => crypto.randomUUID()

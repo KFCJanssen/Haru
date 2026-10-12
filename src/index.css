@@ -128,38 +128,38 @@ h2 { font-size: 1.05rem; margin: 0 0 0.25rem; font-weight: 600; }
 .study { display: flex; flex-direction: column; flex: 1; gap: 1rem; }
 .study-bar { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center; font-size: 0.9rem; }
 .deck-label { color: var(--muted); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.card {
+.study-card {
   flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
   padding: 2.5rem 1.25rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
   min-height: 18rem;
 }
 .face { width: 100%; max-width: 36rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
-.card .sentence { font-size: clamp(1.5rem, 4.6vw, 2.15rem); line-height: 1.6; font-weight: 500; }
-.card .sentence b, .preview b {
+.study-card .sentence { font-size: clamp(1.5rem, 4.6vw, 2.15rem); line-height: 1.6; font-weight: 500; }
+.study-card .sentence b, .preview b {
   font-weight: 700; color: inherit;
   text-decoration: underline; text-decoration-color: var(--seal); text-decoration-thickness: 3px; text-underline-offset: 0.3em;
 }
-.card .answer { width: 100%; border-top: 1px solid var(--line); margin-top: 1rem; padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
-.card .target { font-size: 1.3rem; }
-.card .target .ko { font-weight: 700; }
-.card .pron { color: var(--muted); font-family: var(--serif-ko); margin-left: 0.4rem; }
-.card .meaning { color: var(--ink); }
-.card .meaning-inline { color: var(--muted); font-family: var(--sans); font-size: 1rem; margin-left: 0.4rem; }
-.card .translation { color: var(--muted); font-family: var(--sans); max-width: 32rem; }
-.card .translation.prompt { color: var(--ink); font-size: 1.1rem; }
-.card .cue { color: var(--muted); font-size: 0.9rem; }
-.card .notes { font-size: 0.9rem; color: var(--muted); background: var(--celadon-soft); padding: 0.4rem 0.75rem; border-radius: var(--radius-sm); }
-.card .listen-prompt { color: var(--muted); }
-.card .type-slot {
+.study-card .answer { width: 100%; border-top: 1px solid var(--line); margin-top: 1rem; padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
+.study-card .target { font-size: 1.3rem; }
+.study-card .target .ko { font-weight: 700; }
+.study-card .pron { color: var(--muted); font-family: var(--serif-ko); margin-left: 0.4rem; }
+.study-card .meaning { color: var(--ink); }
+.study-card .meaning-inline { color: var(--muted); font-family: var(--sans); font-size: 1rem; margin-left: 0.4rem; }
+.study-card .translation { color: var(--muted); font-family: var(--sans); max-width: 32rem; }
+.study-card .translation.prompt { color: var(--ink); font-size: 1.1rem; }
+.study-card .cue { color: var(--muted); font-size: 0.9rem; }
+.study-card .notes { font-size: 0.9rem; color: var(--muted); background: var(--celadon-soft); padding: 0.4rem 0.75rem; border-radius: var(--radius-sm); }
+.study-card .listen-prompt { color: var(--muted); }
+.study-card .type-slot {
   display: inline-block; min-width: 4.5em; border-bottom: 3px solid var(--seal); margin: 0 0.2em; vertical-align: -0.1em; height: 1.1em;
 }
-.card button.play {
+.study-card button.play {
   font: inherit; font-size: 1.1rem; width: 3rem; height: 3rem; border-radius: 50%;
   border: 1px solid var(--line); background: var(--bg); color: var(--celadon); cursor: pointer;
 }
-.card.kind-listen .face > button.play { width: 5rem; height: 5rem; font-size: 1.8rem; }
-.card button.play:hover { border-color: var(--celadon); }
-.card img { max-width: 100%; height: auto; }
+.study-card.kind-listen .face > button.play { width: 5rem; height: 5rem; font-size: 1.8rem; }
+.study-card button.play:hover { border-color: var(--celadon); }
+.study-card img { max-width: 100%; height: auto; }
 .type-input {
   margin-top: 1.25rem; font-size: 1.4rem; text-align: center; width: min(100%, 18rem);
   padding: 0.5rem 0.75rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg); color: var(--ink);
@@ -221,10 +221,38 @@ textarea.ko, input.ko { font-size: 1.1rem; }
   .nav a { padding: 0.35rem 0.45rem; font-size: 0.9rem; }
   .two { grid-template-columns: 1fr; }
   .hint-keys { display: none; }
-  .card { padding: 2rem 1rem; }
+  .study-card { padding: 2rem 1rem; }
   .notes li { grid-template-columns: 1fr; gap: 0.4rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* Imported Anki cards: Haru sets the type and colours, the deck keeps its layout. */
+.anki-scope { font-family: var(--sans); font-size: 1.35rem; line-height: 1.6; color: var(--ink); word-break: keep-all; }
+.anki-scope hr, .anki-scope hr#answer { width: 100%; border: 0; border-top: 1px solid var(--line); margin: 1rem 0; }
+.anki-scope .cloze { color: var(--seal); font-weight: 700; }
+.anki-scope b { font-weight: 700; }
+.anki-scope .box { border-color: var(--line) !important; border-radius: var(--radius-sm); }
+.anki-scope details.hint summary, .study-card details.hint summary { cursor: pointer; color: var(--celadon); font-size: 0.95rem; }
+.study-card .face.anki-scope { display: block; }
+
+/* Deck options and import */
+.deck-options { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 0.5rem 0 0.25rem; }
+.opt-row { display: flex; gap: 0.75rem; align-items: end; flex-wrap: wrap; }
+.dropzone {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem;
+  min-height: 9rem; padding: 1.5rem; border: 2px dashed var(--line); border-radius: var(--radius); background: var(--surface);
+  text-align: center; cursor: pointer; margin: 0.5rem 0 1rem;
+}
+.dropzone.over, .dropzone:hover { border-color: var(--celadon); }
+.dropzone.busy { cursor: progress; border-style: solid; }
+.dropzone input { position: absolute; inset: 0; opacity: 0; cursor: inherit; }
+.dz-main { font-weight: 600; }
+.dz-sub { color: var(--muted); font-size: 0.9rem; }
+.check { display: flex; gap: 0.6rem; align-items: center; color: var(--muted); font-size: 0.95rem; }
+.check input { accent-color: var(--celadon); width: 1.1rem; height: 1.1rem; }
+.import-results { list-style: none; padding: 0; margin: 1.25rem 0; border-top: 1px solid var(--line); }
+.import-results li { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.75rem 0; border-bottom: 1px solid var(--line); }
+.import-results li span { color: var(--muted); font-size: 0.95rem; }
