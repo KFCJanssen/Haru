@@ -61,7 +61,7 @@ export default function Study({ deckParam }: { deckParam: string }) {
     const noteType = note ? await db.noteTypes.get(note.noteTypeId) : undefined
     if (!note || !noteType) {
       // Orphaned card: hide it so the session can continue.
-      await db.cards.update(card.id, { suspended: true })
+      await db.cards.update(card.id, { suspended: true, updatedAt: Date.now() })
       return loadNext()
     }
     setIntervals(previewIntervals(sched, card))

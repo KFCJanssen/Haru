@@ -1,7 +1,7 @@
 {
   "name": "haru",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.3",
     "dexie": "^4.4.6",
     "dexie-react-hooks": "^4.4.0",
     "fzstd": "^0.1.1",

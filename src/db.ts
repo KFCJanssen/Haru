@@ -96,6 +96,17 @@ export interface MediaFile {
 export interface Setting {
   key: string
   value: unknown
+  updatedAt?: number
+}
+
+/** A local change waiting to be pushed to the sync server. */
+export interface OutboxEntry {
+  /** `${tbl}:${id}` */
+  key: string
+  tbl: string
+  id: string
+  /** When the change was recorded; used to avoid dropping a newer change after a push. */
+  at: number
 }
 
 export const db = new Dexie('haru') as Dexie & {
@@ -106,6 +117,7 @@ export const db = new Dexie('haru') as Dexie & {
   reviewLogs: EntityTable<ReviewLog, 'id'>
   media: EntityTable<MediaFile, 'name'>
   settings: EntityTable<Setting, 'key'>
+  outbox: EntityTable<OutboxEntry, 'key'>
 }
 
 db.version(1).stores({
@@ -122,6 +134,10 @@ db.version(2).stores({
   notes: 'id, noteTypeId, deckId, *tags, updatedAt, guid',
 })
 
+db.version(3).stores({
+  outbox: 'key, tbl',
+})
+
 export const uid = () => crypto.randomUUID()
 
 export async function getSetting<T>(key: string, fallback: T): Promise<T> {
@@ -130,7 +146,7 @@ export async function getSetting<T>(key: string, fallback: T): Promise<T> {
 }
 
 export async function setSetting(key: string, value: unknown) {
-  await db.settings.put({ key, value })
+  await db.settings.put({ key, value, updatedAt: Date.now() })
 }
 
 /** Ask the browser not to evict our data when disk space runs low. */

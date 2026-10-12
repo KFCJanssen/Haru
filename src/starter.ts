@@ -46,12 +46,13 @@ export async function ensureSeedData() {
   const seeded = await db.settings.get('seeded')
   if (seeded) return
   const now = Date.now()
-  const deckId = uid()
+  // Fixed ids: every device seeds the same starter deck, so sync never duplicates it.
+  const deckId = 'starter-topik2'
   const notes: Note[] = []
   const cards: Card[] = []
   STARTER_ROWS.forEach((r, i) => {
     const note: Note = {
-      id: uid(),
+      id: `starter-note-${i}`,
       noteTypeId: HARU_SENTENCE_ID,
       deckId,
       fields: {
@@ -69,7 +70,7 @@ export async function ensureSeedData() {
     }
     notes.push(note)
     haruSentence.templates.forEach((_t, ord) => {
-      cards.push({ id: uid(), noteId: note.id, deckId, ord, newOrder: i * 10 + ord, ...newCardFields(now) })
+      cards.push({ id: `starter-card-${i}-${ord}`, noteId: note.id, deckId, ord, newOrder: i * 10 + ord, ...newCardFields(now) })
     })
   })
   await db.transaction('rw', [db.decks, db.notes, db.cards, db.settings], async () => {

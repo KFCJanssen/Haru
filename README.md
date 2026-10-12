@@ -4,7 +4,7 @@ Daily Korean study with spaced repetition. Runs in the browser and installs as a
 
 **Live app:** https://kfcjanssen.github.io/Haru/
 
-## What it does (v0.2)
+## What it does (v0.3)
 
 - **FSRS scheduling** (the same algorithm modern Anki uses) with a 90% target recall by default
 - **Sentence cards** with the target word marked: each sentence gives three cards
@@ -16,6 +16,7 @@ Daily Korean study with spaced repetition. Runs in the browser and installs as a
 - Add sentences, browse/search, suspend and delete notes
 - **Anki import**: .apkg files from AnkiWeb or Anki (all three file formats), with audio, images, sub-decks and cloze cards; re-importing updates instead of duplicating
 - **Anki export** of any deck (optionally with your progress)
+- **Sync between devices** (PC, phone, any browser) through a free Supabase project: decks, audio, progress and settings; works offline and catches up later
 - Backup and restore to a JSON file
 - Works offline once loaded
 
@@ -25,7 +26,7 @@ Keyboard: `Space` shows the answer (then grades Good), `1`–`4` grade, `R` repl
 
 1. ~~Foundation + review loop~~
 2. ~~Anki `.apkg` import (all formats, with audio) and export~~
-3. Sync between PC and phone (Supabase)
+3. ~~Sync between PC and phone (Supabase)~~
 4. Card editor + Korean Learners' Dictionary auto-fill
 5. Reader + sentence mining
 6. Shadowing + minimal-pair ear training
@@ -44,4 +45,8 @@ npm run build    # output in dist/ (not committed)
 
 Pushing to `main` builds and deploys to GitHub Pages via `.github/workflows/deploy.yml`.
 
-Stack: React, TypeScript, Vite, vite-plugin-pwa, Dexie (IndexedDB), ts-fsrs.
+Stack: React, TypeScript, Vite, vite-plugin-pwa, Dexie (IndexedDB), ts-fsrs, Supabase (auth, Postgres, storage).
+
+## Sync setup
+
+The Supabase schema is in `supabase/schema.sql` (run it once in the project's SQL editor). The project URL and publishable key in `src/supabase.ts` are public by design; row-level security limits every user to their own rows and files.

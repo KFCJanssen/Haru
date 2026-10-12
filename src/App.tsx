@@ -7,6 +7,7 @@ import AddNote from './screens/AddNote'
 import Browse from './screens/Browse'
 import Settings from './screens/Settings'
 import Import from './screens/Import'
+import { initSync, useSyncStatus } from './sync'
 
 function useHashRoute() {
   const [hash, setHash] = useState(() => window.location.hash.slice(1) || '/')
@@ -25,6 +26,13 @@ const NAV = [
   { href: '#/settings', label: 'Settings', match: (r: string) => r.startsWith('/settings') },
 ]
 
+function SyncDot() {
+  const s = useSyncStatus()
+  if (s.state === 'off') return null
+  const label = s.state === 'syncing' ? 'Syncing' : s.state === 'error' ? 'Sync problem: open Settings' : s.state === 'offline' ? 'Offline' : 'Synced'
+  return <a href="#/settings" className={`sync-dot ${s.state}`} title={label} aria-label={label} />
+}
+
 export default function App() {
   const route = useHashRoute()
   const [ready, setReady] = useState(false)
@@ -32,7 +40,10 @@ export default function App() {
 
   useEffect(() => {
     ensureSeedData()
-      .then(() => setReady(true))
+      .then(() => {
+        setReady(true)
+        initSync()
+      })
       .catch((e) => setError(String(e)))
     requestPersistentStorage()
   }, [])
@@ -55,6 +66,7 @@ export default function App() {
         <a href="#/" className="brand" aria-label="Haru, today">
           <span className="brand-ko" lang="ko">하루</span>
         </a>
+        <SyncDot />
         <nav className="nav">
           {NAV.map((n) => (
             <a key={n.href} href={n.href} className={n.match(route) ? 'active' : ''}>

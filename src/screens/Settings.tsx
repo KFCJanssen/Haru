@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { db, getSetting, setSetting } from '../db'
 import { koreanVoices, resetVoiceCache, speak, whenVoicesReady } from '../speech'
+import SyncPanel from './SyncPanel'
 
 const TABLES = ['decks', 'noteTypes', 'notes', 'cards', 'reviewLogs', 'settings'] as const
 
@@ -60,6 +61,8 @@ export default function Settings() {
     <section className="form-page">
       <h1>Settings</h1>
 
+      <SyncPanel />
+
       <div className="setting">
         <h2>Target recall</h2>
         <p className="sub">
@@ -92,7 +95,7 @@ export default function Settings() {
 
       <div className="setting">
         <h2>Backup</h2>
-        <p className="sub">Saves decks, cards and your full review history to one file. Sync between devices arrives in a later update.</p>
+        <p className="sub">Saves decks, cards and your full review history to one file (audio is not included).</p>
         <div className="inline">
           <button type="button" className="btn" onClick={exportBackup}>Save backup</button>
           <label className="btn file-btn">
