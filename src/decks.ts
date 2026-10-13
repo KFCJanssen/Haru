@@ -14,7 +14,7 @@ export interface DeckNode {
 
 /** Flatten decks into display order with depth, parents before children. */
 export function deckTree(all: Deck[]): DeckNode[] {
-  const sorted = [...all].sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+  const sorted = [...all].sort((a, b) => a.name.localeCompare(b.name, 'ko', { numeric: true }))
   return sorted.map((deck) => {
     const parts = deck.name.split('::')
     return {
