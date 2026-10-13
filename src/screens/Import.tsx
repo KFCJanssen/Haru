@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { importApkg, type ImportResult } from '../anki/importer'
+import { isContainer, parseDeckName } from '../decks'
 
 interface Done {
   file: string
@@ -78,7 +79,7 @@ export default function Import() {
                   {d.result!.notesUpdated ? `, ${d.result!.notesUpdated} updated` : ''}
                   {d.result!.mediaAdded ? `, ${d.result!.mediaAdded} audio/image files` : ''}
                   {d.result!.mediaMissing ? ` (${d.result!.mediaMissing} media files missing from the deck)` : ''}.
-                  {' '}Deck{d.result!.decks.length > 1 ? 's' : ''}: {d.result!.decks.join(', ')}
+                  {' '}{importedDecksLabel(d.result!.decks)}
                 </span>
               )}
             </li>
@@ -92,4 +93,15 @@ export default function Import() {
       )}
     </section>
   )
+}
+
+/** Short summary of where an import landed: tabs and levels when sorted, deck names otherwise. */
+function importedDecksLabel(names: string[]) {
+  const leaves = names.filter((n) => !isContainer(n) && !names.some((m) => m.startsWith(`${n}::`)))
+  const places = [...new Set(leaves.map((n) => {
+    const p = parseDeckName(n)
+    return p ? `${p.tab} TOPIK ${p.level}` : n
+  }))]
+  const shown = places.slice(0, 8).join(', ') + (places.length > 8 ? ` and ${places.length - 8} more` : '')
+  return `${leaves.every((n) => parseDeckName(n)) ? 'Added to' : places.length > 1 ? 'Decks:' : 'Deck:'} ${shown}`
 }

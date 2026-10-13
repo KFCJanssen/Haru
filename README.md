@@ -4,14 +4,19 @@ Daily Korean study with spaced repetition. Runs in the browser and installs as a
 
 **Live app:** https://kfcjanssen.github.io/Haru/
 
-## What it does (v0.3)
+## What it does (v0.4)
+
+- **Four tabs: Vocabulary, Grammar, Listening, Speaking**, each sorted by TOPIK level (1–6). The structure lives in deck names (`Grammar::TOPIK 2::Evita sentences`), so it survives export to Anki. A sentence's Read card sits in its main tab, its Listen card under Listening and its Produce card under Speaking (grammar keeps Produce in Grammar).
+- **Sort into tabs**: one click splits the Evita, Grammar Cheat Sheet, Sounds of Korean and starter decks into tabs and levels, keeping all progress. Any other deck can be moved with Options → Move.
+- Each TOPIK level has its own new-cards-per-day limit; studying a level or tab never adds up every sub-deck's limit (same as Anki)
+- A sentence's Listen and Speaking cards start the day after you first learned its Read card
 
 - **FSRS scheduling** (the same algorithm modern Anki uses) with a 90% target recall by default
 - **Sentence cards** with the target word marked: each sentence gives three cards
   - **Read**: Korean sentence → meaning
   - **Listen**: audio only → meaning (browser text-to-speech when the card has no recording)
   - **Produce**: English + sentence with a gap → type the missing Korean word
-- Daily new-card limit per deck; sibling cards of the same sentence are spread over different days
+- Daily new-card limit per deck and per level; sibling cards of the same sentence are spread over different days
 - Starter deck of 30 TOPIK II sentences
 - Add sentences, browse/search, suspend and delete notes
 - **Anki import**: .apkg files from AnkiWeb or Anki (all three file formats), with audio, images, sub-decks and cloze cards; re-importing updates instead of duplicating

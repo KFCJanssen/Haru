@@ -271,3 +271,34 @@ textarea.ko, input.ko { font-size: 1.1rem; }
 .progress { position: relative; height: 1.6rem; border-radius: var(--radius-sm); background: var(--celadon-soft); overflow: hidden; margin: 0.25rem 0 0.75rem; }
 .progress div { position: absolute; inset: 0 auto 0 0; background: var(--celadon); opacity: 0.35; }
 .progress span { position: relative; font-size: 0.8rem; padding: 0 0.6rem; line-height: 1.6rem; }
+.study-card .say { color: var(--muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+/* Tabs and TOPIK levels */
+.tabs {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.25rem; margin: 1.25rem 0 0.25rem;
+  border-bottom: 1px solid var(--line);
+}
+.tab {
+  font: inherit; font-weight: 500; color: var(--muted); background: none; border: 0; cursor: pointer;
+  padding: 0.7rem 0.25rem 0.6rem; border-bottom: 3px solid transparent; margin-bottom: -1px;
+  display: inline-flex; justify-content: center; align-items: baseline; gap: 0.4rem;
+}
+.tab:hover { color: var(--ink); }
+.tab.on { color: var(--ink); border-bottom-color: var(--celadon); }
+.tab-count { font-size: 0.8rem; font-variant-numeric: tabular-nums; color: var(--celadon); font-weight: 600; }
+.tab-info { margin: 0.75rem 0 0.5rem; }
+.level { margin-top: 1.25rem; }
+.level-head { display: flex; align-items: center; gap: 1rem; padding-bottom: 0.4rem; }
+.level-head h2 { margin: 0; font-family: var(--sans); font-weight: 650; font-size: 1.15rem; letter-spacing: 0.01em; }
+.level-head .btn { margin-left: auto; }
+.btn.small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
+.unsorted { margin-top: 2.5rem; padding-top: 1rem; border-top: 2px dashed var(--line); }
+.unsorted h2 { margin-bottom: 0.5rem; }
+.sort-banner { background: var(--celadon-soft); border-radius: var(--radius); padding: 1rem 1.1rem; margin: 0.5rem 0 1rem; display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+.sort-banner p { margin: 0; }
+@media (max-width: 560px) {
+  .tab { font-size: 0.85rem; flex-direction: column; align-items: center; gap: 0; }
+  .level-head { flex-wrap: wrap; gap: 0.5rem 1rem; }
+}
+.level-limit { font-size: 0.85rem; color: var(--muted); display: inline-flex; gap: 0.4rem; align-items: center; }
+.level-limit input { width: 4.5rem; }

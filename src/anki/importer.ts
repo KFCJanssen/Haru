@@ -3,6 +3,7 @@ import { decompress } from 'fzstd'
 import type { Database } from 'sql.js'
 import { db, uid, type Card, type CardState, type Deck, type Note, type NoteType } from '../db'
 import { newCardFields } from '../scheduler'
+import { haruSentence } from '../noteTypes'
 import { getSql } from './sqlite'
 import { decodeMessage, pbInt, pbMessages, pbString } from './protobuf'
 
@@ -226,6 +227,11 @@ export async function saveParsed(pkg: ParsedPackage, opts: ImportOptions): Promi
   // Note types
   const ntById = new Map<number, NoteType>()
   for (const nt of pkg.noteTypes) {
+    // Haru's own sentence type (from a Haru export or a deck Claude made) maps back to the built-in one.
+    if (nt.name === haruSentence.name && nt.fields.join('|') === haruSentence.fields.join('|')) {
+      ntById.set(nt.id, haruSentence)
+      continue
+    }
     const id = `anki-${nt.id}`
     const existing = await db.noteTypes.get(id)
     const rec: NoteType = {

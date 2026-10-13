@@ -42,7 +42,8 @@ export const haruSentence: NoteType = {
       name: 'Produce',
       qfmt: `<div class="translation prompt">{{Translation}}</div>
 <div class="ko sentence">{{blank:Sentence}}</div>
-<div class="cue">{{Meaning}}</div>`,
+<div class="cue">{{Meaning}}</div>
+<div class="say">Say the whole sentence out loud, then type the missing part.</div>`,
       afmt: `{{FrontSide}}
 <div class="answer">
   <div class="target"><span class="ko">{{Target}}</span>{{#Pronunciation}} <span class="pron">{{Pronunciation}}</span>{{/Pronunciation}}</div>

@@ -38,6 +38,9 @@ export const STARTER_ROWS: Row[] = [
   ['한국어 실력을 <b>유지하려면</b> 매일 조금씩이라도 공부해야 해요.', '유지하다', 'to maintain, keep up', 'To keep up your Korean, you have to study at least a little every day.', '', '-(이)라도: even if only'],
 ]
 
+/** TOPIK level of each starter sentence's target word, in STARTER_ROWS order. */
+export const STARTER_LEVELS = [3, 2, 3, 3, 3, 2, 2, 3, 2, 3, 4, 3, 4, 3, 3, 3, 4, 3, 3, 4, 3, 4, 3, 4, 3, 3, 3, 3, 2, 3]
+
 export const STARTER_DECK_NAME = 'Starter: TOPIK II sentences'
 
 /** Create the built-in note type and (on first run) the starter deck. */

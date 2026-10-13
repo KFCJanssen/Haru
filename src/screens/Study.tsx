@@ -280,7 +280,7 @@ export default function Study({ deckParam }: { deckParam: string }) {
             lang="ko"
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
-            placeholder="Type the missing word"
+            placeholder="Type your answer"
             aria-label="Your answer"
             autoComplete="off"
             autoCorrect="off"
